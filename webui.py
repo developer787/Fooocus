@@ -16,6 +16,9 @@ import args_manager
 import copy
 from PIL import Image
 import numpy as np
+import threading
+
+
 
 
 from modules.sdxl_styles import legal_style_names
@@ -23,6 +26,27 @@ from modules.private_logger import get_current_html_path
 from modules.ui_gradio_extensions import reload_javascript
 from modules.auth import auth_enabled, check_auth
 
+# Additional global variable to control the auto-generation process
+auto_generating = False
+
+def auto_generate_images(*args):
+    global auto_generating
+    while auto_generating:
+        for _ in generate_clicked(*args):
+            if not auto_generating:
+                break
+        time.sleep(70)  # Adjust the time delay as needed
+
+def start_auto_generate(*args):
+    global auto_generating
+    auto_generating = True
+    threading.Thread(target=auto_generate_images, args=args, daemon=True).start()
+    return "Auto-generating images..."
+
+def stop_auto_generate():
+    global auto_generating
+    auto_generating = False
+    return "Stopped auto-generating images."
 
 def save_image(image_array, file_name):
     """
@@ -113,6 +137,9 @@ with shared.gradio_root:
                                  elem_classes=['resizable_area', 'main_view', 'final_gallery', 'image_gallery'],
                                  elem_id='final_gallery')
             with gr.Row(elem_classes='type_row'):
+                auto_generate_button = gr.Button(label="Auto-Generate", value="Auto-Generate", elem_classes='type_row', visible=True)
+                auto_generate_button.click(start_auto_generate, inputs=ctrls, outputs=[])
+                stop_button.click(stop_auto_generate, outputs=[])
                 with gr.Column(scale=17):
                     prompt = gr.Textbox(show_label=False, placeholder="Type prompt here.", elem_id='positive_prompt',
                                         container=False, autofocus=True, elem_classes='type_row', lines=1024)
