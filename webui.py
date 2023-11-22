@@ -123,6 +123,11 @@ shared.gradio_root = gr.Blocks(
     title=title,
     css=modules.html.css).queue()
 
+ctrls = [
+            prompt, negative_prompt, style_selections,
+            performance_selection, aspect_ratios_selection, image_number, image_seed, sharpness, guidance_scale
+        ]
+
 with shared.gradio_root:
     with gr.Row():
         with gr.Column(scale=2):
