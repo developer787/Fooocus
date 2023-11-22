@@ -123,10 +123,7 @@ shared.gradio_root = gr.Blocks(
     title=title,
     css=modules.html.css).queue()
 
-ctrls = [
-            prompt, negative_prompt, style_selections,
-            performance_selection, aspect_ratios_selection, image_number, image_seed, sharpness, guidance_scale
-        ]
+
 
 with shared.gradio_root:
     with gr.Row():
@@ -142,9 +139,7 @@ with shared.gradio_root:
                                  elem_classes=['resizable_area', 'main_view', 'final_gallery', 'image_gallery'],
                                  elem_id='final_gallery')
             with gr.Row(elem_classes='type_row'):
-                auto_generate_button = gr.Button(label="Auto-Generate", value="Auto-Generate", elem_classes='type_row', visible=True)
-                auto_generate_button.click(start_auto_generate, inputs=ctrls, outputs=[])
-                stop_button.click(stop_auto_generate, outputs=[])
+                
                 with gr.Column(scale=17):
                     prompt = gr.Textbox(show_label=False, placeholder="Type prompt here.", elem_id='positive_prompt',
                                         container=False, autofocus=True, elem_classes='type_row', lines=1024)
@@ -173,6 +168,11 @@ with shared.gradio_root:
                     stop_button.click(stop_clicked, outputs=[skip_button, stop_button],
                                       queue=False, show_progress=False, _js='cancelGenerateForever')
                     skip_button.click(skip_clicked, queue=False, show_progress=False)
+
+                auto_generate_button = gr.Button(label="Auto-Generate", value="Auto-Generate", elem_classes='type_row', visible=True)
+                auto_generate_button.click(start_auto_generate, inputs=ctrls, outputs=[])
+                stop_button.click(stop_auto_generate, outputs=[])
+                
             with gr.Row(elem_classes='advanced_check_row'):
                 input_image_checkbox = gr.Checkbox(label='Input Image', value=False, container=False, elem_classes='min_check')
                 advanced_checkbox = gr.Checkbox(label='Advanced', value=modules.config.default_advanced_checkbox, container=False, elem_classes='min_check')
