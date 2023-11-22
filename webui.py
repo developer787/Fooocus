@@ -14,12 +14,25 @@ import modules.advanced_parameters as advanced_parameters
 import modules.style_sorter as style_sorter
 import args_manager
 import copy
+from PIL import Image
+import numpy as np
+
 
 from modules.sdxl_styles import legal_style_names
 from modules.private_logger import get_current_html_path
 from modules.ui_gradio_extensions import reload_javascript
 from modules.auth import auth_enabled, check_auth
 
+
+def save_image(image_array, file_name):
+    """
+    Saves the image to the specified file path.
+    Args:
+    image_array: Numpy array of the image.
+    file_name: Name of the file to save the image.
+    """
+    image = Image.fromarray(np.uint8(image_array)).convert('RGB')
+    image.save(file_name)
 
 def generate_clicked(*args):
     import fcbh.model_management as model_management
@@ -58,6 +71,7 @@ def generate_clicked(*args):
                     gr.update(), \
                     gr.update(visible=False)
             if flag == 'results':
+                save_image(product, 'path/to/save/image.jpg')
                 yield gr.update(visible=True), \
                     gr.update(visible=True), \
                     gr.update(visible=True, value=product), \
