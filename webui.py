@@ -20,6 +20,8 @@ from modules.private_logger import get_current_html_path
 from modules.ui_gradio_extensions import reload_javascript
 from modules.auth import auth_enabled, check_auth
 
+# Define a flag to control the auto-generate process
+shared.auto_generate_active = False
 
 def generate_clicked(*args):
     import fcbh.model_management as model_management
@@ -45,12 +47,8 @@ def generate_clicked(*args):
         if len(task.yields) > 0:
             flag, product = task.yields.pop(0)
             if flag == 'preview':
-
-                # help bad internet connection by skipping duplicated preview
-                if len(task.yields) > 0:  # if we have the next item
-                    if task.yields[0][0] == 'preview':   # if the next item is also a preview
-                        # print('Skipped one preview for better internet connection.')
-                        continue
+                if len(task.yields) > 0 and task.yields[0][0] == 'preview':
+                    continue
 
                 percentage, title, image = product
                 yield gr.update(visible=True, value=modules.html.make_progress_html(percentage, title)), \
@@ -69,9 +67,20 @@ def generate_clicked(*args):
                     gr.update(visible=True, value=product)
                 finished = True
 
+                # Check if auto-generate is active and restart task
+                if shared.auto_generate_active:
+                    task = worker.AsyncTask(args=list(args))
+                else:
+                    finished = True
+
     execution_time = time.perf_counter() - execution_start_time
     print(f'Total time: {execution_time:.2f} seconds')
     return
+
+# Function to start the auto-generate process
+def auto_generate_clicked():
+    shared.auto_generate_active = True
+    generate_clicked()  # Start the generation process
 
 
 reload_javascript()
@@ -112,13 +121,22 @@ with shared.gradio_root:
                     skip_button = gr.Button(label="Skip", value="Skip", elem_classes='type_row_half', visible=False)
                     stop_button = gr.Button(label="Stop", value="Stop", elem_classes='type_row_half', elem_id='stop_button', visible=False)
 
+                    # New button for auto-generating images
+                    auto_generate_button = gr.Button(label="Auto Generate", elem_classes='type_row', visible=True)
+
+                    # Event handler for the auto generate button
+                    auto_generate_button.click(auto_generate_clicked, queue=True)
+
+
                     def stop_clicked():
+                        shared.auto_generate_active = False
                         import fcbh.model_management as model_management
                         shared.last_stop = 'stop'
                         model_management.interrupt_current_processing()
                         return [gr.update(interactive=False)] * 2
 
                     def skip_clicked():
+                        shared.auto_generate_active = False
                         import fcbh.model_management as model_management
                         shared.last_stop = 'skip'
                         model_management.interrupt_current_processing()
