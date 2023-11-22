@@ -170,7 +170,7 @@ with shared.gradio_root:
                     skip_button.click(skip_clicked, queue=False, show_progress=False)
 
                 auto_generate_button = gr.Button(label="Auto-Generate", value="Auto-Generate", elem_classes='type_row', visible=True)
-                auto_generate_button.click(start_auto_generate, inputs=ctrls, outputs=[])
+                auto_generate_button.click(start_auto_generate, outputs=[])
                 stop_button.click(stop_auto_generate, outputs=[])
                 
             with gr.Row(elem_classes='advanced_check_row'):
